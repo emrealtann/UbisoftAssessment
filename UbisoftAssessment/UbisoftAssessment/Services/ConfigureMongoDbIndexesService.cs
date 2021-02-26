@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
@@ -13,16 +14,17 @@ namespace UbisoftAssessment.Services
 {
     public class ConfigureMongoDbIndexesService : IHostedService
     {
-        private readonly IMongoClient _client;
         private readonly ILogger<ConfigureMongoDbIndexesService> _logger;
+        private readonly IConfiguration _configuration;
 
-        public ConfigureMongoDbIndexesService(IMongoClient client, ILogger<ConfigureMongoDbIndexesService> logger)
-            => (_client, _logger) = (client, logger);
+        public ConfigureMongoDbIndexesService(IConfiguration configuration, ILogger<ConfigureMongoDbIndexesService> logger)
+            => (_configuration, _logger) = (configuration, logger);
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            var database = _client.GetDatabase("example");
-            var collection = database.GetCollection<Feedback>("Feedbacks");
+            var client = new MongoClient(_configuration.GetValue<string>("DatabaseSettings:ConnectionString"));
+            var database = client.GetDatabase(_configuration.GetValue<string>("DatabaseSettings:DatabaseName"));
+            var collection = database.GetCollection<Feedback>(_configuration.GetValue<string>("DatabaseSettings:CollectionName"));
 
             _logger.LogInformation("Creating indexes on feedbacks");
             var indexKeysDefinition = Builders<Feedback>.IndexKeys.Ascending(x => x.Rating);

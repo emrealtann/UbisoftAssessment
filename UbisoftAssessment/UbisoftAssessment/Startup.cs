@@ -9,8 +9,15 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
+using UbisoftAssessment.Data;
+using UbisoftAssessment.Data.Interfaces;
+using UbisoftAssessment.Filters;
+using UbisoftAssessment.Repositories;
+using UbisoftAssessment.Repositories.Interfaces;
 using UbisoftAssessment.Services;
 
 namespace UbisoftAssessment
@@ -27,12 +34,21 @@ namespace UbisoftAssessment
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddMvc().AddViewLocalization(o => o.ResourcesPath = "Resources");
+
             services.AddScoped<IFeedbackContext, FeedbackContext>();
+            services.AddScoped<IFeedbackRepository, FeedbackRepository>();
+            services.AddSingleton<CommonLocalizationService>();
+
 
             services.AddControllers();
 
             // Register the Swagger generator, defining 1 or more Swagger documents
-            services.AddSwaggerGen();
+            services.AddSwaggerGen(config =>
+            {
+                config.SwaggerDoc("v1", new OpenApiInfo { Title = "Feedback API", Version = "V1" });
+                //config.OperationFilter<UserIdHeaderFilter>();
+            });
 
             // Register the MongoClient and the index configuration service
             services.AddSingleton<IMongoClient>(new MongoClient(Configuration["DatabaseSettings:ConnectionString"]));
