@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using UbisoftAssessment.Entities;
 using UbisoftAssessment.Entities.Dto;
-using UbisoftAssessment.Repositories.Interfaces;
+using UbisoftAssessment.Services.Interfaces;
 using UbisoftAssessment.Services;
 
 namespace UbisoftAssessment.Controllers
@@ -18,16 +18,16 @@ namespace UbisoftAssessment.Controllers
     [Route("[controller]")]
     public class FeedbacksController : ControllerBase
     {
-        private readonly IFeedbackRepository _repository;
+        private readonly IFeedbackService _service;
         private readonly ILogger<FeedbacksController> _logger;
-        private readonly CommonLocalizationService _localizer;
+        private readonly ICommonLocalizationService _localizer;
 
         /// <summary>
         /// Constructor method for the API controller
         /// </summary>
-        public FeedbacksController(IFeedbackRepository repository, ILogger<FeedbacksController> logger, CommonLocalizationService localizer)
+        public FeedbacksController(IFeedbackService service, ILogger<FeedbacksController> logger, ICommonLocalizationService localizer)
         {
-            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _service = service ?? throw new ArgumentNullException(nameof(service));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _localizer = localizer;
         }
@@ -48,7 +48,7 @@ namespace UbisoftAssessment.Controllers
         {
             try
             {
-                var feedbacks = await _repository.GetFeedbacks(rating);
+                var feedbacks = await _service.GetFeedbacks(rating);
                 return Ok(feedbacks);
             }
             catch(Exception ex)
@@ -89,14 +89,14 @@ namespace UbisoftAssessment.Controllers
                     CreatedOn = DateTime.UtcNow
                 };
 
-                FeedbackVerificationResult verificationResult = await _repository.VerifyFeedback(feedback);
+                FeedbackVerificationResult verificationResult = await _service.VerifyFeedback(feedback);
                 if (verificationResult != FeedbackVerificationResult.Ok)
                 {
                     string errorMessage = _localizer.Get(verificationResult.ToString());
                     return BadRequest(errorMessage);
                 }
 
-                await _repository.CreateFeedback(feedback);
+                await _service.CreateFeedback(feedback);
 
                 return Ok(feedback);
             }

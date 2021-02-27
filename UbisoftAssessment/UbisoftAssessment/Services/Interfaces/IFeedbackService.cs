@@ -4,12 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using UbisoftAssessment.Entities;
 
-namespace UbisoftAssessment.Repositories.Interfaces
+namespace UbisoftAssessment.Services.Interfaces
 {
     /// <summary>
     /// Repository interface for the feedback collection. Can be used for getting feedbacks or CRUD operations.
     /// </summary>
-    public interface IFeedbackRepository
+    public interface IFeedbackService
     {
         /// <summary>
         /// Creates a feedback in the MongoDB feedback collection.

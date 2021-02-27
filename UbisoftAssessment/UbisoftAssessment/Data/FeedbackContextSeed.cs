@@ -29,7 +29,7 @@ namespace UbisoftAssessment.Data
         /// Creates a dummy data.
         /// </summary>
         /// <returns>Dummy feedback list.</returns>
-        private static IEnumerable<Feedback> GetPreconfiguredFeedbacks()
+        public static IEnumerable<Feedback> GetPreconfiguredFeedbacks()
         {
             return new List<Feedback>()
             {

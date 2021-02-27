@@ -5,13 +5,14 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using UbisoftAssessment.Resources;
+using UbisoftAssessment.Services.Interfaces;
 
 namespace UbisoftAssessment.Services
 {
     /// <summary>
     /// Localization service. Uses the default localization resource or the current culture resource.
     /// </summary>
-    public class CommonLocalizationService
+    public class CommonLocalizationService : ICommonLocalizationService
     {
         private readonly IStringLocalizer localizer;
 

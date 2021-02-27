@@ -17,9 +17,8 @@ using MongoDB.Driver;
 using Swashbuckle.AspNetCore.Filters;
 using UbisoftAssessment.Data;
 using UbisoftAssessment.Data.Interfaces;
-using UbisoftAssessment.Repositories;
-using UbisoftAssessment.Repositories.Interfaces;
 using UbisoftAssessment.Services;
+using UbisoftAssessment.Services.Interfaces;
 
 namespace UbisoftAssessment
 {
@@ -38,8 +37,8 @@ namespace UbisoftAssessment
             services.AddMvc().AddViewLocalization(o => o.ResourcesPath = "Resources");
 
             services.AddScoped<IFeedbackContext, FeedbackContext>();
-            services.AddScoped<IFeedbackRepository, FeedbackRepository>();
-            services.AddSingleton<CommonLocalizationService>();
+            services.AddScoped<IFeedbackService, FeedbackService>();
+            services.AddSingleton<ICommonLocalizationService, CommonLocalizationService>();
 
 
             services.AddControllers();
