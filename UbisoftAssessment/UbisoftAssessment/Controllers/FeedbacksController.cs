@@ -40,6 +40,8 @@ namespace UbisoftAssessment.Controllers
         /// </remarks>
         /// <param name="rating">Rating filter. Can be between 1 and 5.</param>
         /// <returns>Feedback list.</returns>
+        /// <response code="200">Returns the feedback list.</response>
+        /// <response code="400">There is an error. Returns error message.</response>  
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<Feedback>), (int)HttpStatusCode.OK)]
         public async Task<ActionResult<IEnumerable<Feedback>>> GetFeedbacks([FromQuery] int? rating = null)
@@ -69,6 +71,8 @@ namespace UbisoftAssessment.Controllers
         /// <param name="userId">Ubisoft user ID. Should be defined in the request header named Ubi-UserId.</param>
         /// <param name="sessionId">Ubisoft session ID. Should be defined in the url path.</param>
         /// <param name="dto">Request payload. User rating should be from 1 to 5.</param>
+        /// <response code="200">Returns the newly created item</response>
+        /// <response code="400">There is an error. Returns error message.</response>  
         [Route("{sessionId}")]
         [HttpPost]
         [ProducesResponseType(typeof(Feedback), (int)HttpStatusCode.OK)]
