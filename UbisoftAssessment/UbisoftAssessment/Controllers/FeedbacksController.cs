@@ -7,28 +7,44 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
+using Swashbuckle.AspNetCore.Filters;
 using UbisoftAssessment.Entities;
 using UbisoftAssessment.Entities.Dto;
 using UbisoftAssessment.Repositories.Interfaces;
 using UbisoftAssessment.Resources;
+using UbisoftAssessment.Services;
 
 namespace UbisoftAssessment.Controllers
 {
+    /// <summary>
+    /// Feedback API controller
+    /// </summary>
     [ApiController]
     [Route("[controller]")]
-    public class FeedbackController : ControllerBase
+    public class FeedbacksController : ControllerBase
     {
         private readonly IFeedbackRepository _repository;
-        private readonly ILogger<FeedbackController> _logger;
+        private readonly ILogger<FeedbacksController> _logger;
         private readonly CommonLocalizationService _localizer;
 
-        public FeedbackController(IFeedbackRepository repository, ILogger<FeedbackController> logger, CommonLocalizationService localizer)
+        /// <summary>
+        /// Constructor method for the API controller
+        /// </summary>
+        public FeedbacksController(IFeedbackRepository repository, ILogger<FeedbacksController> logger, CommonLocalizationService localizer)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _localizer = localizer;
         }
 
+        /// <summary>
+        /// Get the feedback list
+        /// </summary>
+        /// <remarks>
+        /// Lists the last 15 feedbacks left by players and allows filtering by rating.
+        /// </remarks>
+        /// <param name="rating">Rating filter. Can be between 1 and 5.</param>
+        /// <returns>Feedback list.</returns>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<Feedback>), (int)HttpStatusCode.OK)]
         public async Task<ActionResult<IEnumerable<Feedback>>> GetFeedbacks([FromQuery] int? rating = null)
@@ -37,20 +53,20 @@ namespace UbisoftAssessment.Controllers
             return Ok(feedbacks);
         }
 
-        [Route("[action]/{sessionId}")]
+        /// <summary>
+        /// Create a feedback
+        /// </summary>
+        /// <remarks>
+        /// Creates a new feedback with given parameters, returns the inserted feedback.
+        /// </remarks>
+        /// <param name="userId">Ubisoft user ID. Should be defined in the request header named Ubi-UserId.</param>
+        /// <param name="sessionId">Ubisoft session ID. Should be defined in the url path.</param>
+        /// <param name="dto">Request payload. User rating should be from 1 to 5.</param>
+        [Route("{sessionId}")]
         [HttpPost]
         [ProducesResponseType(typeof(Feedback), (int)HttpStatusCode.OK)]
         public async Task<ActionResult<Feedback>> CreateFeedback([FromHeader(Name= "Ubi-UserId")] string userId, [FromRoute] string sessionId, [FromBody] FeedbackDto dto)
         {
-            //if (string.IsNullOrEmpty(userId))
-            //{
-            //    return BadRequest("Please specify the Ubi-UserId in the request header.");
-            //}
-            //else if (string.IsNullOrEmpty(sessionId))
-            //{
-            //    return BadRequest("Please specify the session id in the request header.");
-            //}
-
             Feedback feedback = new Feedback()
             {
                 SessionId = sessionId,

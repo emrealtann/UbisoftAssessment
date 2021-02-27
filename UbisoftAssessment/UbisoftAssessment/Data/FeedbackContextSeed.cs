@@ -7,8 +7,15 @@ using UbisoftAssessment.Entities;
 
 namespace UbisoftAssessment.Data
 {
+    /// <summary>
+    /// Seed class for the feedback collection.
+    /// </summary>
     public class FeedbackContextSeed
     {
+        /// <summary>
+        /// Checks the current db collection and decides whether to seed or not.
+        /// </summary>
+        /// <param name="feedbackCollection">Current feedback collection.</param>
         public static void SeedData(IMongoCollection<Feedback> feedbackCollection)
         {
             bool existFeedback = feedbackCollection.Find(p => true).Any();
@@ -18,6 +25,10 @@ namespace UbisoftAssessment.Data
             }
         }
 
+        /// <summary>
+        /// Creates a dummy data.
+        /// </summary>
+        /// <returns>Dummy feedback list.</returns>
         private static IEnumerable<Feedback> GetPreconfiguredFeedbacks()
         {
             return new List<Feedback>()

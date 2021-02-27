@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using UbisoftAssessment.Resources;
 
-namespace UbisoftAssessment
+namespace UbisoftAssessment.Services
 {
     public class CommonLocalizationService
     {

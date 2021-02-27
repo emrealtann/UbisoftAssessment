@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -13,9 +14,9 @@ using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
+using Swashbuckle.AspNetCore.Filters;
 using UbisoftAssessment.Data;
 using UbisoftAssessment.Data.Interfaces;
-using UbisoftAssessment.Filters;
 using UbisoftAssessment.Repositories;
 using UbisoftAssessment.Repositories.Interfaces;
 using UbisoftAssessment.Services;
@@ -42,12 +43,14 @@ namespace UbisoftAssessment
 
 
             services.AddControllers();
-
+            services.AddSwaggerExamples();
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(config =>
             {
                 config.SwaggerDoc("v1", new OpenApiInfo { Title = "Feedback API", Version = "V1" });
-                //config.OperationFilter<UserIdHeaderFilter>();
+                config.ExampleFilters();
+                var filePath = Path.Combine(AppContext.BaseDirectory, "UbisoftAssessment.xml");
+                config.IncludeXmlComments(filePath);
             });
 
             // Register the MongoClient and the index configuration service
