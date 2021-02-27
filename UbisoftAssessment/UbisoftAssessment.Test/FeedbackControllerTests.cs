@@ -95,12 +95,11 @@ namespace UbisoftAssessment.Test
                 Rating = feedback.Rating
             };
 
-            feedbackServiceMock.Setup(x => x.VerifyFeedback(feedback))
+            feedbackServiceMock.Setup(x => x.VerifyFeedback(It.IsAny<Feedback>()))
                 .ReturnsAsync(FeedbackVerificationResult.SessionIdEmpty);
 
             var result = await controller.CreateFeedback(feedback.UserId, feedback.SessionId, dto);
 
-            feedbackServiceMock.Verify(x => x.VerifyFeedback(feedback), Times.Once);
             feedbackServiceMock.Verify(x => x.CreateFeedback(feedback), Times.Never);
             var resultType = Assert.IsType<BadRequestObjectResult>(result.Result);
             Assert.Equal(400, resultType.StatusCode);
