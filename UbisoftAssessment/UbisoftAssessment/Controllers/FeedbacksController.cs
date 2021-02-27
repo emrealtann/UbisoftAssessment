@@ -20,12 +20,12 @@ namespace UbisoftAssessment.Controllers
     {
         private readonly IFeedbackService _service;
         private readonly ILogger<FeedbacksController> _logger;
-        private readonly CommonLocalizationService _localizer;
+        private readonly ICommonLocalizationService _localizer;
 
         /// <summary>
         /// Constructor method for the API controller
         /// </summary>
-        public FeedbacksController(IFeedbackService service, ILogger<FeedbacksController> logger, CommonLocalizationService localizer)
+        public FeedbacksController(IFeedbackService service, ILogger<FeedbacksController> logger, ICommonLocalizationService localizer)
         {
             _service = service ?? throw new ArgumentNullException(nameof(service));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

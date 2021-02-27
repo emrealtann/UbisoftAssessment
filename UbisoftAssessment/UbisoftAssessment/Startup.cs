@@ -38,7 +38,7 @@ namespace UbisoftAssessment
 
             services.AddScoped<IFeedbackContext, FeedbackContext>();
             services.AddScoped<IFeedbackService, FeedbackService>();
-            services.AddSingleton<CommonLocalizationService>();
+            services.AddSingleton<ICommonLocalizationService, CommonLocalizationService>();
 
 
             services.AddControllers();
