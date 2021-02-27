@@ -34,7 +34,7 @@ namespace UbisoftAssessment.Test
         }
 
         [Fact]
-        public async void GetFeedbacksWithoutFilter()
+        public async void GetFeedbacks_WithoutFilter_Ok()
         {
             feedbackServiceMock.Setup(x => x.GetFeedbacks(null)).ReturnsAsync(items);
             var result = await controller.GetFeedbacks();
@@ -50,7 +50,7 @@ namespace UbisoftAssessment.Test
         [InlineData(4)]
         [InlineData(5)]
         [Theory]
-        public async void GetFeedbacksWithFilter(int rating)
+        public async void GetFeedbacks_WithFilter_Ok(int rating)
         {
             var list = items.Where(x => x.Rating == rating).ToList();
             feedbackServiceMock.Setup(x => x.GetFeedbacks(rating)).ReturnsAsync(list);
@@ -65,7 +65,7 @@ namespace UbisoftAssessment.Test
         [InlineData(0)]
         [InlineData(6)]
         [Theory]
-        public async void GetFeedbacksWithInvalidFilter(int rating)
+        public async void GetFeedbacks_WithInvalidFilter_BadRequest(int rating)
         {
             feedbackServiceMock.Setup(x => x.GetFeedbacks(rating))
                 .ThrowsAsync(new Exception(FeedbackVerificationResult.RatingInappropriate.ToString()));
@@ -78,7 +78,7 @@ namespace UbisoftAssessment.Test
         }
 
         [Fact]
-        public async void VerifyFeedbackWithNullSessionId()
+        public async void CreateFeedback_WithNullSessionId_BadRequest()
         {
             Feedback feedback = new Feedback
             {
@@ -103,6 +103,114 @@ namespace UbisoftAssessment.Test
             feedbackServiceMock.Verify(x => x.CreateFeedback(feedback), Times.Never);
             var resultType = Assert.IsType<BadRequestObjectResult>(result.Result);
             Assert.Equal(400, resultType.StatusCode);
+        }
+
+        [Fact]
+        public async void CreateFeedback_WithNullUserId_BadRequest()
+        {
+            Feedback feedback = new Feedback
+            {
+                Comment = "test",
+                CreatedOn = DateTime.UtcNow,
+                Rating = 1,
+                SessionId = "test",
+                UserId = null
+            };
+
+            FeedbackCreateDto dto = new FeedbackCreateDto()
+            {
+                Comment = feedback.Comment,
+                Rating = feedback.Rating
+            };
+
+            feedbackServiceMock.Setup(x => x.VerifyFeedback(It.IsAny<Feedback>()))
+                .ReturnsAsync(FeedbackVerificationResult.UserIdEmpty);
+
+            var result = await controller.CreateFeedback(feedback.UserId, feedback.SessionId, dto);
+
+            feedbackServiceMock.Verify(x => x.CreateFeedback(feedback), Times.Never);
+            var resultType = Assert.IsType<BadRequestObjectResult>(result.Result);
+            Assert.Equal(400, resultType.StatusCode);
+        }
+
+        [Fact]
+        public async void CreateFeedback_WithIncorrectRating_BadRequest()
+        {
+            Feedback feedback = new Feedback
+            {
+                Comment = "test",
+                CreatedOn = DateTime.UtcNow,
+                Rating = 7,
+                SessionId = "test",
+                UserId = "test"
+            };
+
+            FeedbackCreateDto dto = new FeedbackCreateDto()
+            {
+                Comment = feedback.Comment,
+                Rating = feedback.Rating
+            };
+
+            feedbackServiceMock.Setup(x => x.VerifyFeedback(It.IsAny<Feedback>()))
+                .ReturnsAsync(FeedbackVerificationResult.RatingInappropriate);
+
+            var result = await controller.CreateFeedback(feedback.UserId, feedback.SessionId, dto);
+
+            feedbackServiceMock.Verify(x => x.CreateFeedback(feedback), Times.Never);
+            var resultType = Assert.IsType<BadRequestObjectResult>(result.Result);
+            Assert.Equal(400, resultType.StatusCode);
+        }
+
+        [Fact]
+        public async void CreateFeedback_WithExistingFeedback_BadRequest()
+        {
+            Feedback feedback = items.First();
+            feedback.Id = null;
+
+            FeedbackCreateDto dto = new FeedbackCreateDto()
+            {
+                Comment = feedback.Comment,
+                Rating = feedback.Rating
+            };
+
+            feedbackServiceMock.Setup(x => x.VerifyFeedback(It.IsAny<Feedback>()))
+                .ReturnsAsync(FeedbackVerificationResult.UserAlreadyHasFeedback);
+
+            var result = await controller.CreateFeedback(feedback.UserId, feedback.SessionId, dto);
+
+            feedbackServiceMock.Verify(x => x.CreateFeedback(feedback), Times.Never);
+            var resultType = Assert.IsType<BadRequestObjectResult>(result.Result);
+            Assert.Equal(400, resultType.StatusCode);
+        }
+
+        [Fact]
+        public async void CreateFeedback_Ok()
+        {
+            Feedback feedback = new Feedback
+            {
+                Comment = "test",
+                CreatedOn = DateTime.UtcNow,
+                Rating = 5,
+                SessionId = "10",
+                UserId = "1"
+            };
+
+            FeedbackCreateDto dto = new FeedbackCreateDto()
+            {
+                Comment = feedback.Comment,
+                Rating = feedback.Rating
+            };
+
+            feedbackServiceMock.Setup(x => x.VerifyFeedback(It.IsAny<Feedback>()))
+                .ReturnsAsync(FeedbackVerificationResult.Ok);
+
+            feedbackServiceMock.Setup(x => x.CreateFeedback(It.IsAny<Feedback>()));
+
+            var result = await controller.CreateFeedback(feedback.UserId, feedback.SessionId, dto);
+
+            feedbackServiceMock.VerifyAll();
+            var resultType = Assert.IsType<OkObjectResult>(result.Result);
+            var resultModel = Assert.IsAssignableFrom<Feedback>(resultType.Value);
         }
     }
 }
