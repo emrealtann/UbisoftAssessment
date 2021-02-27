@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
-using Swashbuckle.AspNetCore.Filters;
 using UbisoftAssessment.Entities;
 using UbisoftAssessment.Entities.Dto;
 using UbisoftAssessment.Repositories.Interfaces;
-using UbisoftAssessment.Resources;
 using UbisoftAssessment.Services;
 
 namespace UbisoftAssessment.Controllers
@@ -49,8 +44,20 @@ namespace UbisoftAssessment.Controllers
         [ProducesResponseType(typeof(IEnumerable<Feedback>), (int)HttpStatusCode.OK)]
         public async Task<ActionResult<IEnumerable<Feedback>>> GetFeedbacks([FromQuery] int? rating = null)
         {
-            var feedbacks = await _repository.GetFeedbacks(rating);
-            return Ok(feedbacks);
+            try
+            {
+                var feedbacks = await _repository.GetFeedbacks(rating);
+                return Ok(feedbacks);
+            }
+            catch(Exception ex)
+            {
+                //try to get error message from the localizer service. 
+                //it will return the exc message if it cannot find the key in the resource.
+                string message = _localizer.Get(ex.Message);
+
+                _logger.LogError(ex, "GetFeedbacks Error: " + message);
+                return BadRequest(message);
+            }
         }
 
         /// <summary>
@@ -65,27 +72,35 @@ namespace UbisoftAssessment.Controllers
         [Route("{sessionId}")]
         [HttpPost]
         [ProducesResponseType(typeof(Feedback), (int)HttpStatusCode.OK)]
-        public async Task<ActionResult<Feedback>> CreateFeedback([FromHeader(Name= "Ubi-UserId")] string userId, [FromRoute] string sessionId, [FromBody] FeedbackDto dto)
+        public async Task<ActionResult<Feedback>> CreateFeedback([FromHeader(Name= "Ubi-UserId")] string userId, [FromRoute] string sessionId, [FromBody] FeedbackCreateDto dto)
         {
-            Feedback feedback = new Feedback()
+            try
             {
-                SessionId = sessionId,
-                UserId = userId,
-                Rating = dto.Rating,
-                Comment = dto.Comment,
-                CreatedOn = DateTime.UtcNow
-            };
+                Feedback feedback = new Feedback()
+                {
+                    SessionId = sessionId,
+                    UserId = userId,
+                    Rating = dto.Rating,
+                    Comment = dto.Comment,
+                    CreatedOn = DateTime.UtcNow
+                };
 
-            FeedbackVerificationResult verificationResult = await _repository.VerifyFeedback(feedback);
-            if (verificationResult != FeedbackVerificationResult.Ok)
-            {
-                string errorMessage = _localizer.Get(verificationResult.ToString());
-                return BadRequest(errorMessage);
+                FeedbackVerificationResult verificationResult = await _repository.VerifyFeedback(feedback);
+                if (verificationResult != FeedbackVerificationResult.Ok)
+                {
+                    string errorMessage = _localizer.Get(verificationResult.ToString());
+                    return BadRequest(errorMessage);
+                }
+
+                await _repository.CreateFeedback(feedback);
+
+                return Ok(feedback);
             }
-
-            await _repository.CreateFeedback(feedback);
-
-            return Ok(feedback);
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "CreateFeedback Error");
+                return BadRequest("Error Occurred: " + ex.Message);
+            }
         }
     }
 }

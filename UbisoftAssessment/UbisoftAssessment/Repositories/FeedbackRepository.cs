@@ -9,27 +9,50 @@ using UbisoftAssessment.Repositories.Interfaces;
 
 namespace UbisoftAssessment.Repositories
 {
+    /// <summary>
+    /// Repository class for the feedback collection. Can be used for getting feedbacks or CRUD operations.
+    /// </summary>
     public class FeedbackRepository : IFeedbackRepository
     {
         private readonly IFeedbackContext _context;
 
+        /// <summary>
+        /// Constructor method for the repository class.
+        /// </summary>
+        /// <param name="context">Feedback context.</param>
         public FeedbackRepository(IFeedbackContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
+        /// <summary>
+        /// Creates a feedback in the MongoDB feedback collection.
+        /// </summary>
+        /// <param name="feedback">Feedback entity to create.</param>
         public async Task CreateFeedback(Feedback feedback)
         {
             await _context.Feedbacks.InsertOneAsync(feedback);
         }
 
+        /// <summary>
+        /// Lists the last 15 feedbacks left by players and allows filtering by rating.
+        /// </summary>
+        /// <param name="rating">Rating filter. Can be between 1 and 5.</param>
+        /// <returns>Feedback list.</returns>
         public async Task<IEnumerable<Feedback>> GetFeedbacks(int? rating = null)
         {
             FilterDefinition<Feedback> filter = Builders<Feedback>.Filter.Empty;
 
             if (rating.HasValue)
             {
-                filter = Builders<Feedback>.Filter.Eq(f => f.Rating, rating);
+                if (rating < 1 || rating > 5)
+                {
+                    throw new Exception(FeedbackVerificationResult.RatingInappropriate.ToString());
+                }
+                else
+                {
+                    filter = Builders<Feedback>.Filter.Eq(f => f.Rating, rating);
+                }
             }
 
             return await _context
@@ -40,6 +63,15 @@ namespace UbisoftAssessment.Repositories
                             .ToListAsync();
         }
 
+        /// <summary>
+        /// Verifies the feedback to be inserted.
+        /// </summary>
+        /// <param name="feedback">Feedback entity to be inserted.</param>
+        /// <returns>
+        /// Returns FeedbackVerificationResult enum. Returns Ok if everything is ok.
+        /// If it doesn't return ok, then there is a problem with the entity values.
+        /// You can get the error message with the returned enum from the localization resource.
+        /// </returns>
         public async Task<FeedbackVerificationResult> VerifyFeedback(Feedback feedback)
         {
             if (string.IsNullOrEmpty(feedback.UserId))
