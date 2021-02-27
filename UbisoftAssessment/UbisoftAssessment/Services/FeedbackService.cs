@@ -5,14 +5,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using UbisoftAssessment.Data.Interfaces;
 using UbisoftAssessment.Entities;
-using UbisoftAssessment.Repositories.Interfaces;
+using UbisoftAssessment.Services.Interfaces;
 
-namespace UbisoftAssessment.Repositories
+namespace UbisoftAssessment.Services
 {
     /// <summary>
     /// Repository class for the feedback collection. Can be used for getting feedbacks or CRUD operations.
     /// </summary>
-    public class FeedbackRepository : IFeedbackRepository
+    public class FeedbackService : IFeedbackService
     {
         private readonly IFeedbackContext _context;
 
@@ -20,7 +20,7 @@ namespace UbisoftAssessment.Repositories
         /// Constructor method for the repository class.
         /// </summary>
         /// <param name="context">Feedback context.</param>
-        public FeedbackRepository(IFeedbackContext context)
+        public FeedbackService(IFeedbackContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
