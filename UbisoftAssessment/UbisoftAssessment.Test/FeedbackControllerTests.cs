@@ -29,6 +29,7 @@ namespace UbisoftAssessment.Test
             loggerMock = new Mock<ILogger<FeedbacksController>>();
             localizerMock = new Mock<ICommonLocalizationService>();
 
+            //seed data has been used for mock
             items = FeedbackContextSeed.GetPreconfiguredFeedbacks().ToList();
             controller = new FeedbacksController(feedbackServiceMock.Object, loggerMock.Object, localizerMock.Object);
         }
@@ -36,11 +37,14 @@ namespace UbisoftAssessment.Test
         [Fact]
         public async void GetFeedbacks_WithoutFilter_Ok()
         {
+            //service mock data setup
             feedbackServiceMock.Setup(x => x.GetFeedbacks(null)).ReturnsAsync(items);
             var result = await controller.GetFeedbacks();
 
             feedbackServiceMock.Verify(x => x.GetFeedbacks(null), Times.Once);
             var resultType = Assert.IsType<OkObjectResult>(result.Result);
+
+            //should return the feedback list
             var resultModel = Assert.IsAssignableFrom<List<Feedback>>(resultType.Value);
         }
 
@@ -52,12 +56,15 @@ namespace UbisoftAssessment.Test
         [Theory]
         public async void GetFeedbacks_WithFilter_Ok(int rating)
         {
+            //mock service setup with filtered seed data
             var list = items.Where(x => x.Rating == rating).ToList();
             feedbackServiceMock.Setup(x => x.GetFeedbacks(rating)).ReturnsAsync(list);
             var result = await controller.GetFeedbacks(rating);
 
             feedbackServiceMock.Verify(x => x.GetFeedbacks(rating), Times.Once);
             var resultType = Assert.IsType<OkObjectResult>(result.Result);
+
+            //should return the feedback list
             var resultModel = Assert.IsAssignableFrom<List<Feedback>>(resultType.Value);
         }
 
@@ -67,6 +74,7 @@ namespace UbisoftAssessment.Test
         [Theory]
         public async void GetFeedbacks_WithInvalidFilter_BadRequest(int rating)
         {
+            //mock service setup with exception thrown
             feedbackServiceMock.Setup(x => x.GetFeedbacks(rating))
                 .ThrowsAsync(new Exception(FeedbackVerificationResult.RatingInappropriate.ToString()));
 
@@ -74,6 +82,8 @@ namespace UbisoftAssessment.Test
 
             feedbackServiceMock.Verify(x => x.GetFeedbacks(rating), Times.Once);
             var resultType = Assert.IsType<BadRequestObjectResult>(result.Result);
+
+            //should return 400 status code because of the verification fail
             Assert.Equal(400, resultType.StatusCode);
         }
 
@@ -95,6 +105,7 @@ namespace UbisoftAssessment.Test
                 Rating = feedback.Rating
             };
 
+            //mock service setup with FeedbackVerificationResult
             feedbackServiceMock.Setup(x => x.VerifyFeedback(It.IsAny<Feedback>()))
                 .ReturnsAsync(FeedbackVerificationResult.SessionIdEmpty);
 
@@ -102,6 +113,8 @@ namespace UbisoftAssessment.Test
 
             feedbackServiceMock.Verify(x => x.CreateFeedback(feedback), Times.Never);
             var resultType = Assert.IsType<BadRequestObjectResult>(result.Result);
+
+            //should return 400 status code because of the verification fail
             Assert.Equal(400, resultType.StatusCode);
         }
 
@@ -123,6 +136,7 @@ namespace UbisoftAssessment.Test
                 Rating = feedback.Rating
             };
 
+            //mock service setup with FeedbackVerificationResult
             feedbackServiceMock.Setup(x => x.VerifyFeedback(It.IsAny<Feedback>()))
                 .ReturnsAsync(FeedbackVerificationResult.UserIdEmpty);
 
@@ -130,6 +144,8 @@ namespace UbisoftAssessment.Test
 
             feedbackServiceMock.Verify(x => x.CreateFeedback(feedback), Times.Never);
             var resultType = Assert.IsType<BadRequestObjectResult>(result.Result);
+
+            //should return 400 status code because of the verification fail
             Assert.Equal(400, resultType.StatusCode);
         }
 
@@ -151,6 +167,7 @@ namespace UbisoftAssessment.Test
                 Rating = feedback.Rating
             };
 
+            //mock service setup with FeedbackVerificationResult
             feedbackServiceMock.Setup(x => x.VerifyFeedback(It.IsAny<Feedback>()))
                 .ReturnsAsync(FeedbackVerificationResult.RatingInappropriate);
 
@@ -158,6 +175,8 @@ namespace UbisoftAssessment.Test
 
             feedbackServiceMock.Verify(x => x.CreateFeedback(feedback), Times.Never);
             var resultType = Assert.IsType<BadRequestObjectResult>(result.Result);
+
+            //should return 400 status code because of the verification fail
             Assert.Equal(400, resultType.StatusCode);
         }
 
@@ -173,6 +192,7 @@ namespace UbisoftAssessment.Test
                 Rating = feedback.Rating
             };
 
+            //mock service setup with FeedbackVerificationResult
             feedbackServiceMock.Setup(x => x.VerifyFeedback(It.IsAny<Feedback>()))
                 .ReturnsAsync(FeedbackVerificationResult.UserAlreadyHasFeedback);
 
@@ -180,6 +200,8 @@ namespace UbisoftAssessment.Test
 
             feedbackServiceMock.Verify(x => x.CreateFeedback(feedback), Times.Never);
             var resultType = Assert.IsType<BadRequestObjectResult>(result.Result);
+
+            //should return 400 status code because of the verification fail
             Assert.Equal(400, resultType.StatusCode);
         }
 
@@ -201,15 +223,19 @@ namespace UbisoftAssessment.Test
                 Rating = feedback.Rating
             };
 
+            //mock service setup with FeedbackVerificationResult
             feedbackServiceMock.Setup(x => x.VerifyFeedback(It.IsAny<Feedback>()))
                 .ReturnsAsync(FeedbackVerificationResult.Ok);
 
+            //mock service setup for CreateFeedback method
             feedbackServiceMock.Setup(x => x.CreateFeedback(It.IsAny<Feedback>()));
 
             var result = await controller.CreateFeedback(feedback.UserId, feedback.SessionId, dto);
 
             feedbackServiceMock.VerifyAll();
             var resultType = Assert.IsType<OkObjectResult>(result.Result);
+
+            //should return feedback entity
             var resultModel = Assert.IsAssignableFrom<Feedback>(resultType.Value);
         }
     }
